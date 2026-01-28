@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: watchdog-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy  # <--- TOTO JE DŮLEŽITÉ (čekej na zdravou DB)
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=watchdog_db
+      - POSTGRES_SERVER=db
+
+  db:
+    image: postgres:15-alpine
+    container_name: watchdog-db
+    restart: always
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=watchdog_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    # --- PŘIDANÁ ČÁST: HEALTHCHECK ---
+    healthcheck:
+      # Zkus se připojit k DB pomocí utility pg_isready
+      test: ["CMD-SHELL", "pg_isready -U myuser -d watchdog_db"]
+      interval: 5s      # Zkoušej to každých 5 sekund
+      timeout: 5s       # Čekej max 5 sekund na odpověď
+      retries: 5        # Zkus to maximálně 5x
+
+volumes:
+  postgres_data:
