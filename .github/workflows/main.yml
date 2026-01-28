@@ -30,8 +30,7 @@ jobs:
           ruff check . || true
 
       - name: Test with pytest
-        # Spustí testy. Pokud selžou, pipelina se zastaví a Job 2 se nespustí.
-        run: pytest
+        run: python -m pytest
 
   # 2. JOB: BUILD & PUBLISH (Spustí se jen, když projde quality-gate)
   build-and-push:
